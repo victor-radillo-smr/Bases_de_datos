@@ -275,7 +275,7 @@ FROM
 GROUP BY city_id;
 
 -- 21:  Para cada país, cuenta cuántas ciudades existen.
--- Necesito las tablas country y city
+-- Necesito las tablas country y city.
 
 SELECT 
     country AS país, COUNT(city_id) AS número_de_ciudades
@@ -288,7 +288,7 @@ GROUP BY país;
 select * from city where country_id = 15;
 -- Si ejecutamos la consulta de encima veremos que el pais 15 (que es Brasil) nos devuelve 28 rows que son justo el número de ciudades que nos devielve la primera consulta.
 -- 22:  Para cada idioma, calcula la duración media de películas y muestra solo los idiomas con media entre 90 y 120 inclusive.
--- Necesito las tablas language y film
+-- Necesito las tablas language y film.
 
 Select name as Idioma, round(avg(length), 2) as duracion_media
 from language
@@ -297,7 +297,7 @@ group by idioma
 having  duracion_media >89 and duracion_media <121;
 
 -- 23:  Para cada película, cuenta el número de alquileres que se han hecho de cualquiera de sus copias (usando inventario).
--- Necesito las tablas inventory y rental
+-- Necesito las tablas inventory y rental.
 
 SELECT 
     film_id AS id_pelicula,
@@ -309,12 +309,101 @@ FROM
 GROUP BY id_pelicula;
 
 -- 24:  Para cada cliente, cuenta cuántos pagos ha realizado en 2005 (usando el año de payment_date).
+-- Necesito las tablas customer y payment
+
+SELECT 
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    COUNT(payment_id) AS pagos_2005
+FROM
+    customer
+        JOIN
+    payment USING (customer_id)
+WHERE
+    payment_date LIKE '%2005%'
+GROUP BY cliente;
+
 -- 25:  Para cada película, muestra el promedio de tarifa de alquiler (rental_rate) de las copias existentes (es un promedio redundante pero válido).
+-- Necesito las tablas rental y inventory.
+
+
+-- no lo he entendido.
 -- 26:  Para cada actor, muestra la duración media (length) de sus películas.
+-- necesito las tablas film_actor y film (aunque yo añadiria tambien actor para poner el nombre) 
+
+SELECT 
+    actor_id AS id_actor,
+    ROUND(AVG(length), 2) AS duracíon_media_películas
+FROM
+    film
+        JOIN
+    film_actor USING (film_id)
+GROUP BY actor_id
+ORDER BY actor_id;
+
 -- 27:  Para cada ciudad, cuenta cuántos clientes hay (usando la relación cliente->address->city requiere 3 tablas; aquí contamos direcciones por ciudad).
+-- Necesito las tablas city, customer y address.
+
+SELECT 
+    city AS ciudad, COUNT(customer_id) AS clientes_en_la_ciudad
+FROM
+    customer
+        JOIN
+    address USING (address_id)
+        JOIN
+    city USING (city_id)
+GROUP BY ciudad;
+
+-- ------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT 
+    city AS ciudad, COUNT(address) AS prueba
+FROM
+    customer
+        JOIN
+    address USING (address_id)
+        JOIN
+    city USING (city_id)
+GROUP BY ciudad;
+
+-- Cualquiera de las 2 da el mismo resultado.
 -- 28:  Para cada película, cuenta cuántos actores tiene asociados.
+-- necesito las tablas film_actor y film
+
+SELECT 
+    title AS película,
+    COUNT(actor_id) AS número_de_actores_asociados
+FROM
+    film
+        JOIN
+    film_actor USING (film_id)
+GROUP BY película;
+
 -- 29:  Para cada categoría (por id), cuenta cuántas películas pertenecen a ella (sin nombre de categoría para mantener 2 tablas).
+-- Necesito las tablas category_film y film.
+
+SELECT 
+    category_id AS id_categoria,
+    COUNT(film_id) AS cantidad_de_películas
+FROM
+    film
+        JOIN
+    film_category USING (film_id)
+GROUP BY category_id;
+
+-- Como ya vimos en clase cada película solo puede tener una categoria.
 -- 30:  Para cada tienda, cuenta cuántos alquileres totales se originan en su inventario.
+-- Necesito las tablas rental y inventory.
+
+SELECT 
+    store_id AS id_tienda,
+    COUNT(rental_id) AS alquileres_totales_por_inventario
+FROM
+    inventory
+        JOIN
+    rental USING (inventory_id)
+GROUP BY id_tienda;
+
+
 -- ==============================================
 -- SECCIÓN B) 30 CONSULTAS CON JOIN DE 3 TABLAS
 -- ==============================================
