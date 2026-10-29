@@ -138,12 +138,94 @@ FROM
 GROUP BY cliente;
 
 -- 11:  Muestra los clientes cuyo importe total pagado es al menos 200.
+-- Necesito las tablas customer y payment
+
+SELECT 
+    CONCAT(first_name, ' ', last_name) AS clientes,
+    SUM(amount) AS pagos_totales
+FROM
+    customer
+        JOIN
+    payment USING (customer_id)
+GROUP BY clientes
+HAVING pagos_totales > 200;
+
 -- 12:  Para cada empleado (staff), muestra el número de pagos que ha procesado.
+-- necesito las tablas staff y payments
+
+SELECT 
+    staff_id AS id_empleado,
+    CONCAT(first_name, ' ', last_name) AS empleado,
+    COUNT(payment_id)
+FROM
+    staff
+        JOIN
+    payment USING (staff_id)
+GROUP BY empleado;
+
+select * from staff;
+
+select count(payment_id) from payment;
+-- con esta ultimas consultas comprobamos que solo hay 2 empleados del staff y que hay un total de 16044 pagos
+ 
 -- 13:  Para cada empleado, muestra el importe total procesado.
+-- necesito las tablas staff y payment
+SELECT 
+    staff_id AS id_empleado,
+    CONCAT(first_name, ' ', last_name) AS empleado,
+    SUM(amount) AS total_pago_procesado
+FROM
+    staff
+        JOIN
+    payment USING (staff_id)
+GROUP BY empleado;
+
+
 -- 14:  Para cada tienda, cuenta cuántos artículos de inventario tiene.
+-- Necesito las tablas store y inventory
+
+SELECT 
+    store_id AS id_tienda,
+    COUNT(inventory_id) AS cantidad_articulos
+FROM
+    store
+        JOIN
+    inventory USING (store_id)
+GROUP BY store_id;
+
 -- 15:  Para cada tienda, cuenta cuántos clientes tiene asignados.
+-- Necesito las tablas customer y store
+
+SELECT 
+    store_id AS número_de_tienda,
+    COUNT(customer_id) AS clientes_asignados
+FROM
+    store
+        JOIN
+    customer USING (store_id)
+GROUP BY número_de_tienda;
+
+-- como dijo Víctor esto no significa que un cliente no pueda comprar en varias tiendas pero solo tiene asignada una por como esta hecha Sakila
 -- 16:  Para cada tienda, cuenta cuántos empleados (staff) tiene asignados.
+-- Necesito las tablas staff y store 
+
+select store_id as número_de_tienda, count(staff_id) as empleados_por_tienda
+from store 
+join staff using (store_id)
+group by store_id;
+
+-- Como vimos antes solo hay 2 empleados  uno por cada tienda
 -- 17:  Para cada dirección (address), cuenta cuántas tiendas hay ubicadas ahí (debería ser 0/1 en datos estándar).
+-- Necesito las tablas address y store
+
+Select address_id as id_dirección, address as dirección, count(store_id) as tiendas
+from address
+join store using (address_id)
+group by address.address_id;
+
+select* from address;
+
+-- vimos en consultas anteriores que solo habia 2 tiendas
 -- 18:  Para cada dirección, cuenta cuántos empleados residen en esa dirección.
 -- 19:  Para cada dirección, cuenta cuántos clientes residen ahí.
 -- 20:  Para cada ciudad, cuenta cuántas direcciones hay registradas.
