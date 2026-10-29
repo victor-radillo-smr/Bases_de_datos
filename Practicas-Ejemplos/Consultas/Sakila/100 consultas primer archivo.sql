@@ -209,29 +209,105 @@ GROUP BY número_de_tienda;
 -- 16:  Para cada tienda, cuenta cuántos empleados (staff) tiene asignados.
 -- Necesito las tablas staff y store 
 
-select store_id as número_de_tienda, count(staff_id) as empleados_por_tienda
-from store 
-join staff using (store_id)
-group by store_id;
+SELECT 
+    store_id AS número_de_tienda,
+    COUNT(staff_id) AS empleados_por_tienda
+FROM
+    store
+        JOIN
+    staff USING (store_id)
+GROUP BY store_id;
 
 -- Como vimos antes solo hay 2 empleados  uno por cada tienda
 -- 17:  Para cada dirección (address), cuenta cuántas tiendas hay ubicadas ahí (debería ser 0/1 en datos estándar).
 -- Necesito las tablas address y store
 
-Select address_id as id_dirección, address as dirección, count(store_id) as tiendas
-from address
-join store using (address_id)
-group by address.address_id;
+SELECT 
+    address_id AS id_dirección,
+    address AS dirección,
+    COUNT(store_id) AS tiendas
+FROM
+    address
+        JOIN
+    store USING (address_id)
+GROUP BY address.address_id;
 
 select* from address;
 
 -- vimos en consultas anteriores que solo habia 2 tiendas
 -- 18:  Para cada dirección, cuenta cuántos empleados residen en esa dirección.
+-- Necesito las tablas address y staff
+
+SELECT 
+    address.address_id AS id_dirección,
+    address AS dirección,
+    COUNT(staff_id) AS empleados_residentes
+FROM
+    address
+        JOIN
+    staff ON address.address_id = staff.address_id
+GROUP BY address.address_id;
+
 -- 19:  Para cada dirección, cuenta cuántos clientes residen ahí.
+-- Necesito las tablas address y customer
+
+SELECT 
+    address_id AS id_dirección,
+    address AS dirección,
+    COUNT(customer_id) AS número_clientes_residentes
+FROM
+    address
+        JOIN
+    customer USING (address_id)
+GROUP BY address_id; 
+
+-- preguntar a victor si se pueden sacar el resto de direcciones con un 0 en el 17, 18, 19 
+-- Respuesta: se podria sacar con tipos de JOIN pero no lo hemos visto.
 -- 20:  Para cada ciudad, cuenta cuántas direcciones hay registradas.
+-- Necesito las tablas city y address
+
+SELECT 
+    city AS ciudad, COUNT(address_id) AS direcciones_registradas
+FROM
+    city
+        JOIN
+    address USING (city_id)
+GROUP BY city_id;
+
 -- 21:  Para cada país, cuenta cuántas ciudades existen.
+-- Necesito las tablas country y city
+
+SELECT 
+    country AS país, COUNT(city_id) AS número_de_ciudades
+FROM
+    country
+        JOIN
+    city USING (country_id)
+GROUP BY país;
+
+select * from city where country_id = 15;
+-- Si ejecutamos la consulta de encima veremos que el pais 15 (que es Brasil) nos devuelve 28 rows que son justo el número de ciudades que nos devielve la primera consulta.
 -- 22:  Para cada idioma, calcula la duración media de películas y muestra solo los idiomas con media entre 90 y 120 inclusive.
+-- Necesito las tablas language y film
+
+Select name as Idioma, round(avg(length), 2) as duracion_media
+from language
+join film using (language_id)
+group by idioma
+having  duracion_media >89 and duracion_media <121;
+
 -- 23:  Para cada película, cuenta el número de alquileres que se han hecho de cualquiera de sus copias (usando inventario).
+-- Necesito las tablas inventory y rental
+
+SELECT 
+    film_id AS id_pelicula,
+    COUNT(rental_id) AS veces_alquilada
+FROM
+    inventory
+        JOIN
+    rental USING (inventory_id)
+GROUP BY id_pelicula;
+
 -- 24:  Para cada cliente, cuenta cuántos pagos ha realizado en 2005 (usando el año de payment_date).
 -- 25:  Para cada película, muestra el promedio de tarifa de alquiler (rental_rate) de las copias existentes (es un promedio redundante pero válido).
 -- 26:  Para cada actor, muestra la duración media (length) de sus películas.
