@@ -323,10 +323,20 @@ WHERE
 GROUP BY cliente;
 
 -- 25:  Para cada película, muestra el promedio de tarifa de alquiler (rental_rate) de las copias existentes (es un promedio redundante pero válido).
--- Necesito las tablas rental y inventory.
+-- Necesito las tablas film y inventory.
 
+SELECT 
+    title AS película,
+    ROUND(AVG(rental_rate), 2) AS coste_por_alquiler,
+    COUNT(inventory_id) AS número_copias
+FROM
+    film
+        JOIN
+    inventory USING (film_id)
+GROUP BY película;
 
 -- no lo he entendido.
+-- lo debatimos en clase 2 compañeros y yo y me dijeron que habia un dato que no habia visto pensandoque ese dato estaba en rental en vez de en film (rental_rate)
 -- 26:  Para cada actor, muestra la duración media (length) de sus películas.
 -- necesito las tablas film_actor y film (aunque yo añadiria tambien actor para poner el nombre) 
 
@@ -408,16 +418,152 @@ GROUP BY id_tienda;
 -- SECCIÓN B) 30 CONSULTAS CON JOIN DE 3 TABLAS
 -- ==============================================
 -- 31:  Para cada actor, cuenta cuántas películas tiene y muestra solo los que superan 15 películas.
+-- Necesito las tablas actor, film actor.
+SELECT 
+    CONCAT(first_name, ' ', last_name) AS actor,
+    COUNT(film_id) AS participacion_en_películas
+FROM
+    actor
+        JOIN
+    film_actor USING (actor_id)
+GROUP BY actor
+HAVING participacion_en_películas > 15;
+
 -- 32:  Para cada categoría (por nombre), cuenta cuántas películas hay en esa categoría.
+-- Necesito las tablas category, film_category.
+
+SELECT 
+    name AS categoria, film_id AS cantidad_de_películas
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+GROUP BY categoria;
+
+-- Lo hable con Víctor y estas dos ultimas consultas las pude hacer con solo dos tablas
 -- 33:  Para cada película, cuenta cuántos alquileres se han hecho de sus copias.
+-- Necesito las tablas film, rental y inventory.
+
+SELECT 
+    title AS película,
+    COUNT(rental_id) AS número_de_veces_alquilada
+FROM
+    film
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+GROUP BY película;
+
 -- 34:  Para cada cliente, suma el importe pagado en 2005 y filtra clientes con total >= 150.
+-- Necesito las tablas  customer,  payment.
+
+SELECT 
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    SUM(amount) AS pagos_2005
+FROM
+    customer
+        JOIN
+    payment USING (customer_id)
+WHERE
+    payment_date LIKE '%2005%'
+GROUP BY cliente
+HAVING pagos_2005 >= 150;
+
+-- solo he necesitado 2 tablas porque en payment ya hay un payment_date
 -- 35:  Para cada tienda, suma el importe cobrado por todos sus empleados.
+-- Necesito las tablas store, staff y payment.
+
+SELECT 
+    CONCAT(first_name, ' ', last_name) AS empleado,
+    store_id AS número_de_tienda,
+    SUM(amount) AS cantidad_gestionada_de_pagos
+FROM
+    store
+        JOIN
+    staff USING (store_id)
+        JOIN
+    payment USING (staff_id)
+GROUP BY empleado;
+
 -- 36:  Para cada ciudad, cuenta cuántos empleados residen ahí (staff -> address -> city).
+-- Necesito las tablas city, address y staff.
+
+SELECT 
+    city AS ciudad,
+    COUNT(staff_id) AS número_empleados_residentes
+FROM
+    city
+        JOIN
+    address USING (city_id)
+        JOIN
+    staff USING (address_id)
+GROUP BY city;
+
 -- 37:  Para cada ciudad, cuenta cuántas tiendas existen (store -> address -> city).
+-- Necesito las tablas city, address y store.
+
+SELECT 
+    city AS ciudad, COUNT(store_id) AS número_de_tiendas
+FROM
+    city
+        JOIN
+    address USING (city_id)
+        JOIN
+    store USING (address_id)
+GROUP BY ciudad;
+
 -- 38:  Para cada actor, calcula la duración media de sus películas del año 2006.
+-- Necesito las tablas actor, film_actor, film.
+
+SELECT 
+    CONCAT(first_name, ' ', last_name) AS actor,
+    ROUND(AVG(length), 2) AS duracion_media_2006
+FROM
+    actor
+        JOIN
+    film_actor USING (actor_id)
+        JOIN
+    film USING (film_id)
+WHERE
+    release_year LIKE '%2006'
+GROUP BY actor;
+
+
 -- 39:  Para cada categoría, calcula la duración media y muestra solo las que superan 120.
+-- Necesito las tablas category, film_category.
+
+SELECT 
+    name AS categoria, ROUND(AVG(length), 2) AS duracion_media
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+GROUP BY categoria
+HAVING duracion_media > 120;
+
 -- 40:  Para cada idioma, suma las tarifas de alquiler (rental_rate) de todas sus películas.
+-- Necesito las tablas language , film y inventory.
+
+SELECT 
+    language_id AS id_idioma,
+    name AS idioma,
+    SUM(rental_rate) AS Coste_alquiler_idioma
+FROM
+    language
+        JOIN
+    film USING (language_id)
+        JOIN
+    inventory USING (film_id)
+GROUP BY id_idioma;
+
 -- 41:  Para cada cliente, cuenta cuántos alquileres realizó en fines de semana (SÁB-DO) usando DAYOFWEEK (1=Domingo).
+
+
+
+
 -- 42:  Para cada actor, muestra el total de títulos distintos en los que participa (equivale a COUNT DISTINCT, sin subconsulta).
 -- 43:  Para cada ciudad, cuenta cuántos clientes residen ahí (customer -> address -> city).
 -- 44:  Para cada categoría, muestra cuántos actores distintos participan en películas de esa categoría.
