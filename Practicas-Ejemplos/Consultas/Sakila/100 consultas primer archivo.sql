@@ -617,15 +617,97 @@ group by id_categoria;
 
 -- en tu solucion pones el nombre de la categoria pero si lo pusiera tendria que usar mas de 3 tablas .
 -- 45:  Para cada tienda, cuenta cuántas copias totales (inventario) tiene de películas en 2006.
--- 
+-- Necesito las tablas inventory, film y store
 
-
+SELECT 
+    store_id AS tienda, COUNT(DISTINCT inventory_id) AS copias
+FROM
+    store
+        JOIN
+    inventory USING (store_id)
+        JOIN
+    film USING (film_id)
+WHERE
+    release_year >= 2006
+GROUP BY store_id;
 
 -- 46:  Para cada cliente, suma el total pagado por alquileres cuyo empleado pertenece a la tienda 1.
+-- Necesito las tablas customer, rental y para hacer 3 staff pero con 2 se puede hacer. 
+
+SELECT 
+    customer_id AS id_cliente,
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    SUM(amount) AS total_pago_alquileres
+FROM
+    customer
+        JOIN
+    payment USING (customer_id)
+    -- join staff using (staff_id)
+WHERE
+    staff_id = 1
+GROUP BY customer_id;
+
+
 -- 47:  Para cada película, cuenta cuántos actores tienen el apellido de longitud >= 5.
+-- Necesito las tablas film, film_actor y actor
+
+SELECT 
+    film_id AS id_película,
+    title AS película,
+    COUNT(actor_id) AS actores_apellido_5_letras_o_más
+FROM
+    film
+        JOIN
+    film_actor USING (film_id)
+        JOIN
+    actor USING (actor_id)
+WHERE
+    LENGTH(last_name) >= 5
+GROUP BY id_película;
+
 -- 48:  Para cada categoría, suma la duración total (length) de sus películas.
+-- Necesito las tablas category film_category y film.
+
+SELECT 
+    category_id AS id_categoria,
+    name AS categoria,
+    SUM(length) AS duracion_total
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+GROUP BY category_id;
+
 -- 49:  Para cada ciudad, suma los importes pagados por clientes que residen en esa ciudad.
+-- Necesito las tablas address, customer y payment (pondria tambien city para añadir el nombre pero usaria 4 tablas).
+
+SELECT 
+    city_id AS id_ciudad, SUM(amount) AS total_pagado_por_ciudad
+FROM
+    address
+        JOIN
+    customer USING (address_id)
+        JOIN
+    payment USING (customer_id)
+GROUP BY city_id; 
+
 -- 50:  Para cada idioma, cuenta cuántos actores distintos participan en películas de ese idioma.
+-- Necesito las tablas language, film y film_actor.
+
+SELECT 
+    language_id AS id_idioma,
+    name AS idioma,
+    COUNT(DISTINCT actor_id) actores_participantes
+FROM
+    language
+        JOIN
+    film USING (language_id)
+        JOIN
+    film_actor USING (film_id)
+GROUP BY id_idioma;
+
 -- 51:  Para cada tienda, cuenta cuántos clientes activos (active=1) tiene.
 -- 52:  Para cada cliente, cuenta en cuántas categorías distintas ha alquilado (aprox. vía film_category; requiere 4 tablas, aquí contamos películas 2006 por inventario).
 -- 53:  Para cada empleado, cuenta cuántos clientes diferentes le han pagado.
