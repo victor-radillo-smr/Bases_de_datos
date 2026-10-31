@@ -560,14 +560,67 @@ FROM
 GROUP BY id_idioma;
 
 -- 41:  Para cada cliente, cuenta cuántos alquileres realizó en fines de semana (SÁB-DO) usando DAYOFWEEK (1=Domingo).
+-- Necesito las tablas rental, customer.
 
-
+SELECT 
+    customer_id AS id_cliente,
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    (COUNT(DISTINCT rental_date)) AS alquileres_fin_de_semana
+FROM
+    customer
+        JOIN
+    rental USING (customer_id)
+WHERE
+    DAYOFWEEK(rental_date) = 1
+        OR DAYOFWEEK(rental_date) = 7
+GROUP BY id_cliente;
 
 
 -- 42:  Para cada actor, muestra el total de títulos distintos en los que participa (equivale a COUNT DISTINCT, sin subconsulta).
+-- Necesito las tablas actor, film_actor y film.
+
+SELECT 
+    actor_id,
+    CONCAT(first_name, ' ', last_name) AS actor,
+    COUNT(title) AS participacion_en_películas
+FROM
+    actor
+        JOIN
+    film_actor USING (actor_id)
+        JOIN
+    film USING (film_id)
+GROUP BY actor_id;
+
 -- 43:  Para cada ciudad, cuenta cuántos clientes residen ahí (customer -> address -> city).
+-- Necesito las tablas customer, address, city. 
+
+SELECT 
+    city_id AS id_ciudad,
+    city AS ciudad,
+    COUNT(customer_id) AS clientes_residentes
+FROM
+    city
+        JOIN
+    address USING (city_id)
+        JOIN
+    customer USING (address_id)
+GROUP BY id_ciudad;
+
 -- 44:  Para cada categoría, muestra cuántos actores distintos participan en películas de esa categoría.
+-- Necesito las tablas film_category, film y film_actor
+
+select category_id as id_categoria, count(distinct actor_id) as actores_por_categoria
+from film_category
+join film using (film_id)
+join film_actor using (film_id)
+group by id_categoria;
+
+-- en tu solucion pones el nombre de la categoria pero si lo pusiera tendria que usar mas de 3 tablas .
 -- 45:  Para cada tienda, cuenta cuántas copias totales (inventario) tiene de películas en 2006.
+-- 
+
+
+
 -- 46:  Para cada cliente, suma el total pagado por alquileres cuyo empleado pertenece a la tienda 1.
 -- 47:  Para cada película, cuenta cuántos actores tienen el apellido de longitud >= 5.
 -- 48:  Para cada categoría, suma la duración total (length) de sus películas.
