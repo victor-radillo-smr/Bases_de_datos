@@ -709,9 +709,63 @@ FROM
 GROUP BY id_idioma;
 
 -- 51:  Para cada tienda, cuenta cuántos clientes activos (active=1) tiene.
+-- Necesito las tablas store y customer (podriamos añadir address para añadir  la direccion de la tienda).
+
+SELECT 
+    store_id AS tienda, COUNT(active) AS cilentes_activos
+FROM
+    store
+        JOIN
+    customer USING (store_id)
+WHERE
+    active = 1
+GROUP BY store_id;
+
+-- Lo intente hacer con address me lie y lo hice solo con store y customer.
 -- 52:  Para cada cliente, cuenta en cuántas categorías distintas ha alquilado (aprox. vía film_category; requiere 4 tablas, aquí contamos películas 2006 por inventario).
+-- Necesito las tablas rental (de ahi saco el customer_id), inventory, film y film_category (podria añadir una quinta para añadir el nombre del cliente)
+
+SELECT 
+    customer_id AS id_cliente,
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    COUNT(DISTINCT category_id) AS categorias_alquiladas_por_cliente_2026
+FROM
+    customer
+        JOIN
+    rental USING (customer_id)
+        JOIN
+    inventory USING (inventory_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    film_category USING (film_id)
+WHERE
+    rental_date LIKE '%2006%'
+GROUP BY id_cliente;
+
 -- 53:  Para cada empleado, cuenta cuántos clientes diferentes le han pagado.
+-- Necesito las tablas staff, payment y customer. 
+
+Select  concat(s.first_name, " ", s.last_name) as empleado, count(distinct cus.customer_id) as pagos_clientes_distintos
+from staff s
+join payment pay using (staff_id)
+join customer  cus using (customer_id)
+group by staff_id;
+
+-- no se hacerla.
 -- 54:  Para cada ciudad, cuenta cuántas películas del año 2006 han sido alquiladas por residentes en esa ciudad.
+-- Necesito las tablas address, customer, rental, inventory y film (añadiria una 6 para el nombre de la ciudad city)
+
+Select city_id as id_ciudad, city as ciudad, count(rental_id) películas_alquiladas_por_residentes
+from city
+join address using (city_id)
+join customer using(address_id)
+join rental using (customer_id)
+join inventory using (inventory_id)
+join film using (film_id)
+where release_year = 2006
+group by id_ciudad;
+
 -- 55:  Para cada categoría, calcula el promedio de replacement_cost de sus películas.
 -- 56:  Para cada tienda, suma los importes cobrados en 2006 (vía empleados de esa tienda).
 -- 57:  Para cada actor, cuenta cuántas películas tienen título de más de 12 caracteres.
