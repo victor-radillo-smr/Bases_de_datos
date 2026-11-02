@@ -723,7 +723,7 @@ GROUP BY store_id;
 
 -- Lo intente hacer con address me lie y lo hice solo con store y customer.
 -- 52:  Para cada cliente, cuenta en cuántas categorías distintas ha alquilado (aprox. vía film_category; requiere 4 tablas, aquí contamos películas 2006 por inventario).
--- Necesito las tablas rental (de ahi saco el customer_id), inventory, film y film_category (podria añadir una quinta para añadir el nombre del cliente)
+-- Necesito las tablas rental (de ahi saco el customer_id), inventory, film y film_category (podria añadir una quinta para añadir el nombre del cliente).
 
 SELECT 
     customer_id AS id_cliente,
@@ -746,15 +746,20 @@ GROUP BY id_cliente;
 -- 53:  Para cada empleado, cuenta cuántos clientes diferentes le han pagado.
 -- Necesito las tablas staff, payment y customer. 
 
-Select  concat(s.first_name, " ", s.last_name) as empleado, count(distinct cus.customer_id) as pagos_clientes_distintos
-from staff s
-join payment pay using (staff_id)
-join customer  cus using (customer_id)
-group by staff_id;
+SELECT 
+    staff_id AS id_empleado,
+    CONCAT(s.first_name, ' ', s.last_name) AS empleado,
+    COUNT(DISTINCT p.customer_id) AS pagos_clientes_distintos
+FROM
+    staff s
+        JOIN
+    payment p USING (staff_id)
+        JOIN
+    customer c USING (customer_id)
+GROUP BY staff_id;
 
--- no se hacerla.
 -- 54:  Para cada ciudad, cuenta cuántas películas del año 2006 han sido alquiladas por residentes en esa ciudad.
--- Necesito las tablas address, customer, rental, inventory y film (añadiria una 6 para el nombre de la ciudad city)
+-- Necesito las tablas address, customer, rental, inventory y film (añadiria una 6 para el nombre de la ciudad city).
 
 Select city_id as id_ciudad, city as ciudad, count(rental_id) películas_alquiladas_por_residentes
 from city
@@ -764,14 +769,105 @@ join rental using (customer_id)
 join inventory using (inventory_id)
 join film using (film_id)
 where release_year = 2006
-group by id_ciudad;
+group by customer_id;
 
+-- preguntar a Víctor (resultados distintos).
 -- 55:  Para cada categoría, calcula el promedio de replacement_cost de sus películas.
+-- Necesito las tablas category, film_category y film .
+
+SELECT 
+    name AS categoria,
+    ROUND(AVG(replacement_cost), 2) AS precio_promedio_remplazo
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+GROUP BY categoria; 
+
 -- 56:  Para cada tienda, suma los importes cobrados en 2006 (vía empleados de esa tienda).
+-- Necesito las tablas store, sdtaff y payment.
+
+SELECT 
+    store_id AS tienda, SUM(amount) AS importes_cobrados_2006
+FROM
+    store
+        JOIN
+    staff USING (store_id)
+        JOIN
+    payment USING (staff_id)
+WHERE
+    payment_date LIKE '%2006%'
+GROUP BY tienda;
+
 -- 57:  Para cada actor, cuenta cuántas películas tienen título de más de 12 caracteres.
+-- Necesito las tablas actor, film_actor, film.
+
+SELECT 
+    actor_id AS id_actor,
+    CONCAT(first_name, ' ', last_name) AS actor,
+    COUNT(title) AS películas_más_12_caracteres
+FROM
+    actor
+        JOIN
+    film_actor USING (actor_id)
+        JOIN
+    film USING (film_id)
+WHERE
+    LENGTH(title) > 12
+GROUP BY id_actor;
+
 -- 58:  Para cada ciudad, calcula la suma de pagos de 2005 y filtra las ciudades con total >= 300.
+-- Necesito las tablas address, staff, payments.
+
+SELECT 
+    city_id AS id_ciudad, SUM(amount) AS total_pagos_2005
+FROM
+    address
+        JOIN
+    customer USING (address_id)
+        JOIN
+    payment USING (customer_id)
+WHERE
+    payment_date LIKE '%2005%'
+GROUP BY city_id
+HAVING total_pagos_2005 >= 300;
+
 -- 59:  Para cada categoría, cuenta cuántas películas tienen rating 'PG' o 'PG-13'.
+-- Necesito las tablas category, film_category y film.
+
+SELECT 
+    category_id AS id_categoria,
+    name AS categoria,
+    COUNT(film_id) AS películas_PG_o_PG13
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+WHERE
+    rating LIKE 'PG' OR rating LIKE 'PG-13'
+GROUP BY id_categoria;
+
 -- 60:  Para cada cliente, calcula el total pagado en pagos procesados por el empleado 2.
+-- Necesito las tablas customer, payment y staff.
+
+SELECT 
+    customer_id AS ic_cliente,
+    CONCAT(c.first_name, ' ', c.last_name) AS cliente,
+    SUM(amount) AS pagos_procesados_empleado_2
+FROM
+    customer c
+        JOIN
+    payment p USING (customer_id)
+        JOIN
+    staff s USING (staff_id)
+WHERE
+    p.staff_id LIKE 2
+GROUP BY customer_id;
+
 -- ==============================================
 -- SECCIÓN C) 20 CONSULTAS CON JOIN DE 4 TABLAS
 -- ==============================================
