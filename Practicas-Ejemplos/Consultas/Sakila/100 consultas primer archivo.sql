@@ -872,13 +872,143 @@ GROUP BY customer_id;
 -- SECCIÓN C) 20 CONSULTAS CON JOIN DE 4 TABLAS
 -- ==============================================
 -- 61:  Para cada ciudad, cuenta cuántos clientes hay y muestra solo ciudades con 10 o más clientes.
+-- Necesito las tablas city, address, customer... 
+
+SELECT 
+    city_id AS id_ciudad,
+    city AS ciudades_com_más_de_10_clientes,
+    COUNT(DISTINCT customer_id) AS clientes_por_ciudad
+FROM
+    city
+        JOIN
+    address USING (city_id)
+        JOIN
+    customer USING (address_id)
+GROUP BY id_ciudad
+HAVING clientes_por_ciudad < 10;
+
+-- No puedo hacerla mas larga para cumplir 4 tablas.
 -- 62:  Para cada actor, cuenta cuántos alquileres totales suman todas sus películas.
+-- Necesito las tablas film_actor, film, inventory y rental.
+
+SELECT 
+    actor_id AS id_actor,
+    CONCAT(first_name, ' ', last_name) AS actor,
+    COUNT(rental_id) AS alquileres_totales
+FROM
+    actor
+        JOIN
+    film_actor USING (actor_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+GROUP BY id_actor;
+
+-- Añadi la quinta tabla por añadir los nombres pienso que puede ser un dato importante para aportar claridad a la consulta.
 -- 63:  Para cada categoría, suma los importes pagados derivados de películas de esa categoría.
+-- Necesito las tablas  category, film_category, film, inventory, rental y payment (no hay una manera de hacerla con 4).
+
+SELECT 
+    name AS categoria, SUM(amount) AS importes_por_categoria
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+        JOIN
+    payment USING (rental_id)
+GROUP BY categoria;
+
+-- Añadi la quinta tabla por añadir los nombres pienso que puede ser un dato importante para aportar claridad a la consulta.
 -- 64:  Para cada ciudad, suma los importes pagados por clientes residentes en esa ciudad en 2005.
+-- Necesito las tablas city, address, customer, payment.
+
+SELECT 
+    city_id AS id_ciudad,
+    city AS ciudad,
+    SUM(amount) AS pagos_por_ciudad_2005
+FROM
+    city
+        JOIN
+    address USING (city_id)
+        JOIN
+    customer USING (address_id)
+        JOIN
+    payment USING (customer_id)
+WHERE
+    payment_date LIKE '%2005%'
+GROUP BY id_ciudad;
+
 -- 65:  Para cada tienda, cuenta cuántos actores distintos aparecen en las películas de su inventario.
+-- Necesito las tablas store, inventory, film y film_actor
+
+SELECT 
+    store_id AS id_tienda,
+    COUNT(DISTINCT actor_id) AS actores_distintos_por_inventario
+FROM
+    store
+        JOIN
+    inventory USING (store_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    film_actor USING (film_id)
+GROUP BY store_id;
+
 -- 66:  Para cada idioma, cuenta cuántos alquileres totales se han hecho de películas en ese idioma.
+-- Necesito las tablas language, film, inventory y rental.
+
+SELECT 
+    language_id AS id_idioma,
+    name AS idioma,
+    COUNT(rental_id) AS alquilereres_por_idioma
+FROM
+    language
+        JOIN
+    film USING (language_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+GROUP BY id_idioma;
+
 -- 67:  Para cada cliente, cuenta en cuántos meses distintos de 2005 realizó pagos (meses distintos).
+-- Necesito las tablas customer y  payment.
+
+SELECT 
+    customer_id AS id_cliente,
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    COUNT(DISTINCT MONTH(payment_date)) AS meses_distintos_con_pagos_2005
+FROM
+    customer
+        JOIN
+    payment USING (customer_id)
+WHERE
+    payment_date LIKE '%2005-__%'
+GROUP BY id_cliente;
+
 -- 68:  Para cada categoría, calcula la duración media de las películas alquiladas (considerando solo películas alquiladas).
+-- Necesito las tablas category, film_category, film, inventory y rental.
+
+Select category_id as id_categoria, name as categoria, avg(length) as duracion_media_peliculas_alquiladas_por_categoria
+from category
+join film_category using (category_id)
+join film using (film_id)
+join inventory using (film_id)
+join rental using (inventory_id)
+group by id_categoria;
+
+select* from film where rental_duration = 0
+
+-- Sin acabar.
 -- 69:  Para cada país, cuenta cuántos clientes hay (country -> city -> address -> customer).
 -- 70:  Para cada país, suma los importes pagados por sus clientes.
 -- 71:  Para cada tienda, cuenta cuántas categorías distintas existen en su inventario.
