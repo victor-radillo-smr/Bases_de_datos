@@ -998,29 +998,167 @@ GROUP BY id_cliente;
 -- 68:  Para cada categoría, calcula la duración media de las películas alquiladas (considerando solo películas alquiladas).
 -- Necesito las tablas category, film_category, film, inventory y rental.
 
-Select category_id as id_categoria, name as categoria, avg(length) as duracion_media_peliculas_alquiladas_por_categoria
-from category
-join film_category using (category_id)
-join film using (film_id)
-join inventory using (film_id)
-join rental using (inventory_id)
-group by id_categoria;
+SELECT 
+    category_id AS id_categoria,
+    name AS categoria,
+    AVG(length) AS duracion_media_peliculas_alquiladas_por_categoria
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+GROUP BY category_id;
 
-select* from film where rental_duration = 0
-
--- Sin acabar.
 -- 69:  Para cada país, cuenta cuántos clientes hay (country -> city -> address -> customer).
 -- 70:  Para cada país, suma los importes pagados por sus clientes.
 -- 71:  Para cada tienda, cuenta cuántas categorías distintas existen en su inventario.
 -- 72:  Para cada tienda, suma la recaudación por categoría (resultado agregado por tienda y categoría).
 -- 73:  Para cada actor, cuenta en cuántas tiendas distintas se han alquilado sus películas.
+-- Necesito las tablas actor, film_actor, film y inventory
+
+SELECT 
+    actor_id AS id_actor,
+    CONCAT(first_name, ' ', last_name) AS actor,
+    COUNT(DISTINCT store_id) AS tiendas_donde_alquilaron_sus_películas
+FROM
+    actor
+        JOIN
+    film_actor USING (actor_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+GROUP BY actor_id;
+  
 -- 74:  Para cada categoría, cuenta cuántos clientes distintos han alquilado películas de esa categoría.
+-- Necesito las tablas category, film_category, film, inventory, rental y  customer.
+
+SELECT 
+    category_id AS id_categoria,
+    name AS categoria,
+    COUNT(DISTINCT customer_id) AS alquileres_por_clientes_distintos_de_la_categoria
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+GROUP BY category_id;
+
 -- 75:  Para cada idioma, cuenta cuántos actores distintos participan en películas alquiladas en ese idioma.
+-- Necesito las tablas  language, film, film_actor y actor.
+
+SELECT 
+    language_id AS id_idioma,
+    name AS idioma,
+    COUNT(DISTINCT actor_id) AS actores_que_participaron_en_películas_en_ese_idioma
+FROM
+    language
+        JOIN
+    film USING (language_id)
+        JOIN
+    film_actor USING (film_id)
+        JOIN
+    actor USING (actor_id)
+GROUP BY language_id;
+
 -- 76:  Para cada país, cuenta cuántas tiendas hay (país->ciudad->address->store).
+-- Necesito las tablas país, ciudad, address y store.
+
+SELECT 
+    country_id AS id_país, country AS país, COUNT(store_id)
+FROM
+    country
+        JOIN
+    city USING (country_id)
+        JOIN
+    address USING (city_id)
+        JOIN
+    store USING (address_id)
+GROUP BY country_id;
+
 -- 77:  Para cada cliente, cuenta los alquileres en los que la devolución (return_date) fue el mismo día del alquiler.
+-- Necesito las tablas customer, rental.
+
+SELECT 
+    customer.customer_id AS id_cliente,
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    COUNT(rental_id)
+FROM
+    customer
+        JOIN
+    rental ON customer.customer_id = rental.customer_id
+WHERE
+    DATE(return_date) = DATE(rental_date)
+GROUP BY customer.customer_id;
+
 -- 78:  Para cada tienda, cuenta cuántos clientes distintos realizaron pagos en 2005.
+-- Necesito las tablas store, customer, payment
+
+SELECT 
+    store.store_id AS id_tienda,
+    COUNT(DISTINCT customer_id) AS clientes_que_realizaron_pagos_2005
+FROM
+    store
+        JOIN
+    customer USING (store_id)
+        JOIN
+    payment USING (customer_id)
+WHERE
+    YEAR(payment_date) = 2005
+GROUP BY store_id;
+
 -- 79:  Para cada categoría, cuenta cuántas películas con título de longitud > 15 han sido alquiladas.
+-- Necesito las tablas category, film_category, film, inventory y rental.
+
+SELECT 
+    category_id AS id_categoria,
+    name AS categoria,
+    COUNT(rental_id) AS películas_longitud_mayor_a_15_han_sido_alquiladas
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+WHERE
+    LENGTH(title) > 15
+GROUP BY category_id;
+
 -- 80:  Para cada país, suma los pagos procesados por los empleados de las tiendas ubicadas en ese país.
+-- Necesito las tablas country, city, address, store, staff y payment.
+
+SELECT 
+    country_id AS id_país,
+    country AS país,
+    SUM(amount) AS pagos_procesados_por_los_empleados_de_las_tiendas_de_ese_país
+FROM
+    country
+        JOIN
+    city USING (country_id)
+        JOIN
+    address USING (city_id)
+        JOIN
+    store USING (address_id)
+        JOIN
+    staff USING (store_id)
+        JOIN
+    payment USING (staff_id)
+GROUP BY country_id;
+
 -- ==============================================
 -- SECCIÓN D) 20 CONSULTAS EXTRA (DIFICULTAD +), <=4 JOINS
 -- ==============================================
