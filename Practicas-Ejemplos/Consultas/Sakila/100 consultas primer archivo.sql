@@ -1321,6 +1321,32 @@ group by store_id;
 
 -- revisar resultados distintos
 -- 91:  Para cada país, cuenta cuántas categorías diferentes han sido alquiladas por clientes residentes en ese país.
+-- Necesito las tablas country, city, address, customer, rental, inventory, film y film_category.
+
+SELECT 
+    country_id AS id_país,
+    country AS país,
+    COUNT(DISTINCT category_id) categorias_distintas_alquiladas_por_residentes
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+        JOIN
+    customer USING (customer_id)
+        JOIN
+    address USING (address_id)
+        JOIN
+    city USING (city_id)
+        JOIN
+    country USING (country_id)
+GROUP BY country_id;
+
 -- 92:  Para cada cliente, muestra el importe medio de sus pagos redondeado a 2 decimales, solo si ha hecho al menos 10 pagos.
 -- 93:  Para cada categoría, muestra el número de películas con replacement_cost > 20 que hayan sido alquiladas al menos una vez.
 -- 94:  Para cada tienda, suma los importes pagados en fines de semana.
