@@ -1015,11 +1015,83 @@ FROM
 GROUP BY category_id;
 
 -- 69:  Para cada país, cuenta cuántos clientes hay (country -> city -> address -> customer).
+
+SELECT 
+    country_id AS id_país,
+    country AS país,
+    COUNT(DISTINCT customer_id) AS clientes_por_país
+FROM
+    country
+        JOIN
+    city USING (country_id)
+        JOIN
+    address USING (city_id)
+        JOIN
+    customer USING (address_id)
+GROUP BY id_país;
+
 -- 70:  Para cada país, suma los importes pagados por sus clientes.
+-- Necesito las tablas country, city, address, customer, payment.
+
+SELECT 
+    country_id AS id_país,
+    country AS país,
+    SUM(amount) AS pagos_por_país
+FROM
+    country
+        JOIN
+    city USING (country_id)
+        JOIN
+    address USING (city_id)
+        JOIN
+    customer USING (address_id)
+        JOIN
+    payment USING (customer_id)
+GROUP BY id_país;
+
+-- añadi la quinta tabla (country) por que me parecia que el nombre del país era un dato a tener en cuenta a la hora de hacer ests consulta.
 -- 71:  Para cada tienda, cuenta cuántas categorías distintas existen en su inventario.
+-- Necesito las tablas store, inventory, film, film_category
+
+SELECT 
+    store_id AS id_tienda,
+    COUNT(DISTINCT category_id) AS categorias_distintas_por_inventario
+FROM
+    store
+        JOIN
+    inventory USING (store_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    film_category USING (film_id)
+GROUP BY id_tienda;
+
 -- 72:  Para cada tienda, suma la recaudación por categoría (resultado agregado por tienda y categoría).
+-- Necesito las tablas payment, staff, store, inventory, film, film_category y category
+
+SELECT 
+    inventory.store_id AS id_tienda,
+    category_id AS id_categoria,
+    name AS categoria,
+    SUM(amount) AS recaudacion_por_categoria
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+        JOIN
+    payment USING (rental_id)
+GROUP BY inventory.store_id , category_id , name
+ORDER BY category_id , inventory.store_id;
+
+-- me da resultados distintos 
 -- 73:  Para cada actor, cuenta en cuántas tiendas distintas se han alquilado sus películas.
--- Necesito las tablas actor, film_actor, film y inventory
+-- Necesito las tablas actor, film_actor, film y inventory.
 
 SELECT 
     actor_id AS id_actor,
@@ -1348,12 +1420,115 @@ FROM
 GROUP BY country_id;
 
 -- 92:  Para cada cliente, muestra el importe medio de sus pagos redondeado a 2 decimales, solo si ha hecho al menos 10 pagos.
+-- Necesito las tablas customer, rental y payment.
+
+SELECT 
+    customer_id AS id_cliente,
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    ROUND(AVG(amount), 2) AS importe_medio_clientes_menos_10_pagos
+FROM
+    customer
+        JOIN
+    payment USING (customer_id)
+GROUP BY customer_id
+HAVING COUNT(payment_id) > 10;
+
 -- 93:  Para cada categoría, muestra el número de películas con replacement_cost > 20 que hayan sido alquiladas al menos una vez.
+-- Necesito las tablas category, film_category, film, inventory y rental.
+
+SELECT 
+    category_id AS id_categoria,
+    name AS categoria,
+    COUNT(DISTINCT film_id) AS número_de_películas_alquiladas_almenos_1_vez_con_replacement_cost_mayor_que_20
+FROM
+    category
+        JOIN
+    film_category USING (category_id)
+        JOIN
+    film USING (film_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+WHERE
+    replacement_cost > 20
+GROUP BY category_id;
+
+
 -- 94:  Para cada tienda, suma los importes pagados en fines de semana.
+-- Necesito las tablas store, customer y payments.
+
+SELECT 
+    store_id AS id_tienda,
+    SUM(amount) AS importes_pagados_fines_de_semana
+FROM
+    store
+        JOIN
+    staff USING (store_id)
+        JOIN
+    payment USING (staff_id)
+WHERE
+    DAYOFWEEK(payment_date) = 7
+        OR DAYOFWEEK(payment_date) = 1
+GROUP BY store_id;
+
 -- 95:  Para cada actor, cuenta cuántas películas suyas fueron alquiladas por al menos 5 clientes distintos (se cuenta alquileres y luego se filtra por HAVING).
+-- Necesito las tablas actor, film_actor, inventory y rental.
+
+Select actor_id, concat(first_name, " ",last_name) as actor, count(rental_id) as películas_alquiladas_por_5_o_más_clientes_distintos
+from actor
+join film_actor using (actor_id)
+join film using (film_id)
+join inventory using (film_id)
+join rental using (inventory_id)
+group by actor_id
+having count(distinct customer_id) >= 5;
+
+-- no me da el msimo resultado
 -- 96:  Para cada idioma, muestra el número de películas cuyo título empieza por la letra 'A' y que han sido alquiladas.
+-- Necesito las tablas language, film, inventory y rental
+
+SELECT 
+    language_id AS id_idioma,
+    name AS idioma,
+    COUNT(DISTINCT title) pelícuulas_que_empiezan_por_A_y_han_sido_alquiladas
+FROM
+    language
+        JOIN
+    film USING (language_id)
+        JOIN
+    inventory USING (film_id)
+        JOIN
+    rental USING (inventory_id)
+WHERE
+    title LIKE 'A%'
+GROUP BY language_id;
+
 -- 97:  Para cada país, suma el importe total de pagos realizados por clientes residentes y filtra países con total >= 1000.
+-- Necesito las tablas country city, address, customer y payment. 
+
+SELECT 
+    country_id AS id_país,
+    country AS país,
+    SUM(amount) AS pagos_realizados_clientes_residentes
+FROM
+    country
+        JOIN
+    city USING (country_id)
+        JOIN
+    address USING (city_id)
+        JOIN
+    customer USING (address_id)
+        JOIN
+    payment USING (customer_id)
+GROUP BY country_id
+HAVING SUM(amount) > 1000;
+
 -- 98:  Para cada cliente, cuenta cuántos días han pasado entre su primer y su último alquiler en 2005 (diferencia de fechas), mostrando solo clientes con >= 5 alquileres en 2005.
 --     (Se evita subconsulta calculando sobre el conjunto agrupado por cliente y usando MIN/MAX de rental_date en 2005).
+-- Necesito las tablas customer 
+
+
+
 -- 99:  Para cada tienda, muestra la media de importes cobrados por transacción en el año 2006, con dos decimales.
 -- 100:  Para cada categoría, calcula la media de duración (length) de películas alquiladas en 2006 y ordénalas descendentemente por dicha media.
