@@ -1526,9 +1526,36 @@ HAVING SUM(amount) > 1000;
 
 -- 98:  Para cada cliente, cuenta cuántos días han pasado entre su primer y su último alquiler en 2005 (diferencia de fechas), mostrando solo clientes con >= 5 alquileres en 2005.
 --     (Se evita subconsulta calculando sobre el conjunto agrupado por cliente y usando MIN/MAX de rental_date en 2005).
--- Necesito las tablas customer 
+-- Necesito las tablas customer y rental.
 
-
+Select customer_id as id_cliente, concat(first_name, " ",last_name) as cliente, datediff(max(rental_date),min(rental_date)) as dias_entre_el_primer_y_el_ultimo_alquiler
+from customer
+join rental using (customer_id)
+where year(rental_date) = 2005
+group by customer_id
+having count( distinct rental_id) >= 5;
 
 -- 99:  Para cada tienda, muestra la media de importes cobrados por transacción en el año 2006, con dos decimales.
+-- Necesito las tablas store, staff y payment.
+
+Select store_id as id_tienda, round(avg(amount),2) as importes_cobrados_2006
+from store
+join staff using (store_id)
+join payment using (staff_id)
+where year(payment_date) = 2006
+group by store_id;
+
+
 -- 100:  Para cada categoría, calcula la media de duración (length) de películas alquiladas en 2006 y ordénalas descendentemente por dicha media.
+-- Necesito las tablas category, film_category y film.
+
+Select category_id as id_categoria, name as categoria, avg(length) as duracion_películas_alquiladas_2006
+from category
+join film_category using(category_id)
+join film using(film_id)
+join inventory using (film_id)
+join rental using (inventory_id)
+where year(rental_date) = 2006
+group by category_id
+order by avg(length) desc;
+
