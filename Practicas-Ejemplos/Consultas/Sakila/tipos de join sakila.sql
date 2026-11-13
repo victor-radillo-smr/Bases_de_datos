@@ -44,5 +44,40 @@ left join rental using (inventory_id)
 group by film.film_id
 having count(rental_id) = 0;
 
+-- --------------------------------------------------------------------------------------------------------------
 -- ejemlos de patrones de join.
 -- patron 1: dos tablas cosas de a que no tienen b.
+
+select*
+from a 
+left join b
+where b.id is null;
+
+-- patron 2: mas de 2 tablas cosas de la primera tabla que no tiene la ultima 
+
+select*
+from a 
+left join b
+left join c
+group by a.id
+having count(c.id)=0;
+
+-- --------------------------------------------------------------------------------------------------------------
+
+
+-- 1) Obten el listado de idiomas que no tienen ninguna película.
+
+Select name as idioma
+from language
+left join film using (language_id)
+where film_id is null;
+
+-- 2)¿Hay algún actor que no salga en ninguna película?
+
+Select actor_id as id_actor, concat(first_name, " ",last_name) as actor
+from actor
+left join film_actor using (actor_id)
+where film_actor.film_id is null;
+
+-- comprobacion que esta bien hecha.
+select count(*),count(distinct actor_id) from actor join film_actor using (actor_id);
