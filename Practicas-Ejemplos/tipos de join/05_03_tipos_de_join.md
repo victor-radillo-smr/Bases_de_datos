@@ -1,4 +1,6 @@
-### 1. Idiomas y películas 
+use sakila;
+
+### 1. Idiomas y películas (hacer)
 
 # Muestra el identificador y nombre de todos los idiomas, junto con el identificador y título de sus películas. Incluye los idiomas que no tengan películas. Ordena por idioma y título.
 
@@ -6,7 +8,7 @@
 
 # Muestra el identificador y título de todas las películas y el identificador de cada ejemplar del inventario. Incluye las películas sin ejemplares. Ordena por título y ejemplar.
 
-### 3. Películas y reparto 
+### 3. Películas y reparto (hacer)
 
 # Muestra el identificador y título de todas las películas, junto con los identificadores de los actores que participan en ellas. Incluye las películas sin actores. Ordena por título y actor.
 
@@ -92,8 +94,38 @@ left join film f on i.film_id = f.film_id;
 
 ### 19. Películas con menos de 3 copias en tienda 1 
 
-# Muestra el identificador y título de las películas que tienen menos de tres ejemplares en la tienda 1, incluidos los que tienen cero. Añade el recuento de ejemplares y el máximo identificador de ejemplar. Ordena por recuento y título.
+# Muestra el identificador y título de las películas que tienen menos de tres ejemplares en la tienda 1, incluidos los que tienen cero. 
+# Añade el recuento de ejemplares y el máximo identificador de ejemplar. Ordena por recuento y título.
 
+select f.film_id as id_película, f.title as película, count(i.inventory_id) as número_de_películas
+from film f
+left join inventory i on f.film_id = i.film_id and store_id = 1
+group by f.film_id, f.title
+having count(i.inventory_id) < 3;
+
+-- no sale la 14 
+-- la peli 14 no tiene copias fisicas en ninguna tienda.
+-- por lo tanto no tiene copiasen la tienda 1.
+-- ergo, deberia salir en esta consulta 
+
+select f.film_id as id_película, f.title as película, count(i.inventory_id) as número_de_películas
+from film f
+left join inventory i on f.film_id = i.film_id
+where store_id = 1 or store_id is null
+group by f.film_id, f.title
+having count(i.inventory_id) < 3;
+-- esta mal
+
+/*
+Al haber filtrado con where en store_id = 1 te cargas los valores null porque un inventario que no existe no puede tener asignado ninguna tienda por lo que no muestra todas las peliculas que no tienen copias fisicas.
+Si se hace un filtro con store_id = 1 en el on salen consiguen salir todos los datos ¿porque?.
+CONCLUSION:
+Si filtramos con el WHERE por el orden de ejecucion de una consulta filtrara despues de la union de las tablas machacando por completo el LEFT JOIN dejandolo practicamente como un INNER JOIN sin encambio al hacer 
+el filtro en el ON hara el filtro igual pero los que no compartan ese filtro recibiran un valor NULL lo cual es lo que se necesita en esta consulta porque si las peliculas tienen copias fisicas pero no en la tienda 1 
+tambien se deben de contar.
+EXPLICACION:
+
+*/
 ### 20. Películas jamás alquiladas (varios JOIN) 
 
 # Muestra las películas que nunca se han alquilado, considerando todos sus ejemplares en las dos tiendas. Devuelve identificador, título, número de alquileres y máximo identificador de alquiler. Ordena por título.
