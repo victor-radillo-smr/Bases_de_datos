@@ -15,9 +15,22 @@ use sakila;
 ### 4. Ciudades y direcciones 
 
 # Muestra el identificador y nombre de todas las ciudades, junto con el identificador y texto de las direcciones registradas. Incluye ciudades sin direcciones. Ordena por ciudad y dirección.
-select country_id as id_país, country as país, city_id as id_ciudad, city as ciudad, address_id as id_direccion, address, address2
-from city left join address using (city_id) join country using (country_id)
-where address is null and address2 is null; 
+SELECT 
+    country_id AS id_país,
+    country AS país,
+    city_id AS id_ciudad,
+    city AS ciudad,
+    address_id AS id_direccion,
+    address,
+    address2
+FROM
+    city
+        LEFT JOIN
+    address USING (city_id)
+        JOIN
+    country USING (country_id)
+WHERE
+    address IS NULL AND address2 IS NULL; 
 
 ### 5. Ejemplares y alquileres 
 
@@ -31,9 +44,17 @@ where address is null and address2 is null;
 
 # Muestra el identificador, nombre y apellidos de todos los clientes y los alquileres que realizaron en mayo de 2005, con su fecha. Incluye clientes sin alquileres ese mes. Ordena por cliente y fecha.
 
-select c.customer_id as id_cliente, concat(first_name, " ",last_name) as cliente, rental_date as alquiler_2005
-from rental r right join customer c on r.customer_id = c.customer_id and rental_date like "%2005-05%" or rental_date is null
-order by c.customer_id, rental_id;
+SELECT 
+    c.customer_id AS id_cliente,
+    CONCAT(first_name, ' ', last_name) AS cliente,
+    rental_date AS alquiler_2005
+FROM
+    rental r
+        RIGHT JOIN
+    customer c ON r.customer_id = c.customer_id
+        AND rental_date LIKE '%2005-05%'
+        OR rental_date IS NULL
+ORDER BY c.customer_id , rental_id;
 
 -- casos de filtrar en el on:
 -- caso 1 cuando estoy buscando sacar nulls
@@ -47,14 +68,23 @@ order by c.customer_id, rental_id;
 
 # Muestra todas las películas y sus identificadores de inventario, incluyendo las que no tienen copias. Sitúa la tabla de inventario a la izquierda del JOIN. Ordena por película y ejemplar.
 
-Select f.film_id as id_película, title as película, i.inventory_id as id_inventario
-from inventory i 
-left join film f on i.film_id = f.film_id or inventory_id is null
-order by f.film_id, i.inventory_id;
+SELECT 
+    f.film_id AS id_película,
+    title AS película,
+    i.inventory_id AS id_inventario
+FROM
+    inventory i
+        LEFT JOIN
+    film f ON i.film_id = f.film_id
+        OR inventory_id IS NULL
+ORDER BY f.film_id , i.inventory_id;
 
-select count(inventory_id)
-from inventory i
-left join film f on i.film_id = f.film_id;
+SELECT 
+    COUNT(inventory_id)
+FROM
+    inventory i
+        LEFT JOIN
+    film f ON i.film_id = f.film_id;
 
 ### 10. Películas y asociaciones con actores 
 
@@ -97,23 +127,34 @@ left join film f on i.film_id = f.film_id;
 # Muestra el identificador y título de las películas que tienen menos de tres ejemplares en la tienda 1, incluidos los que tienen cero. 
 # Añade el recuento de ejemplares y el máximo identificador de ejemplar. Ordena por recuento y título.
 
-select f.film_id as id_película, f.title as película, count(i.inventory_id) as número_de_películas
-from film f
-left join inventory i on f.film_id = i.film_id and store_id = 1
-group by f.film_id, f.title
-having count(i.inventory_id) < 3;
+SELECT 
+    f.film_id AS id_película,
+    f.title AS película,
+    COUNT(i.inventory_id) AS número_de_películas
+FROM
+    film f
+        LEFT JOIN
+    inventory i ON f.film_id = i.film_id AND store_id = 1
+GROUP BY f.film_id , f.title
+HAVING COUNT(i.inventory_id) < 3;
 
 -- no sale la 14 
 -- la peli 14 no tiene copias fisicas en ninguna tienda.
 -- por lo tanto no tiene copiasen la tienda 1.
 -- ergo, deberia salir en esta consulta 
 
-select f.film_id as id_película, f.title as película, count(i.inventory_id) as número_de_películas
-from film f
-left join inventory i on f.film_id = i.film_id
-where store_id = 1 or store_id is null
-group by f.film_id, f.title
-having count(i.inventory_id) < 3;
+SELECT 
+    f.film_id AS id_película,
+    f.title AS película,
+    COUNT(i.inventory_id) AS número_de_películas
+FROM
+    film f
+        LEFT JOIN
+    inventory i ON f.film_id = i.film_id
+WHERE
+    store_id = 1 OR store_id IS NULL
+GROUP BY f.film_id , f.title
+HAVING COUNT(i.inventory_id) < 3;
 -- esta mal
 
 /*
@@ -130,3 +171,19 @@ EXPLICACION:
 
 # Muestra las películas que nunca se han alquilado, considerando todos sus ejemplares en las dos tiendas. Devuelve identificador, título, número de alquileres y máximo identificador de alquiler. Ordena por título.
 
+SELECT 
+    f.film_id,
+    f.title AS pelicula,
+    COUNT(r.rental_id),
+    COUNT(i.inventory_id),
+    COUNT(DISTINCT i.inventory_id)
+FROM
+    film f
+        LEFT JOIN
+    inventory i ON f.film_id = i.film_id
+        LEFT JOIN
+    rental r ON i.inventory_id = r.inventory_id
+GROUP BY f.film_id
+HAVING COUNT(rental_id) = 0;
+
+-- Esta consulta deberia de repasarla bastante es un buen ejemplo para estudiar.
