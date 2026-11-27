@@ -78,9 +78,21 @@ select * from
 
 -- Consulta 12. Clientes con al menos un alquiler.
 
+Select c.*
+from customer c
+join rental r on c.customer_id = r.customer_id
+where (select count(rental_id) from rental join customer using (customer_id) where rental_id is not null group by customer_id)
+group by c.customer_id;
+
 
 -- Consulta 13. Clientes con al menos un alquiler — segunda versión con WITH.
+-- no aporta mucho
 
+-- consulta bonus: Saca el listado de actores que han participado en peliculas que duran mas de 150 min
+
+-- with peliculas_de_mas_de_150 as ()
+-- select
+-- from -- NO USES FILM
 
 -- Consulta 14. Películas sin alquileres con NOT EXISTS.
 
